@@ -1,7 +1,9 @@
 import numpy as np
+import time
 from progress.bar import ChargingBar
 
 large_motion = False
+b_nim_error = False
 N = 10
 DIM = 3
 SIZE = 3
@@ -12,15 +14,13 @@ eps = 1
 sigma = 1
 rcut = 2.5 * sigma
 rmin = 0.0001
-time = dt
+fulltime = dt
 
 r = np.array([np.zeros([DIM]) for _ in np.arange(N)])
 dr = np.array([np.zeros([DIM]) for _ in np.arange(N)])
 v = np.array([np.zeros([DIM]) for _ in np.arange(N)])
 f = np.array([np.zeros([DIM]) for _ in np.arange(N)])
 m = np.array([np.zeros([DIM]) for _ in np.arange(N)])
-
-list_coords = np.array([])
 
 def clear_file():
      with open('coords.xmol', 'w', encoding='utf-8') as file:
@@ -32,18 +32,19 @@ def new_frame(file_handle):
 def print_to_file(ti):
     global v
     global r
-    global time
+    global fulltime
     with open('coords.xmol', 'a', encoding='utf-8') as file:
         new_frame(file)
-        file.write(f'***** time = * {time:.4} *****\n')
+        file.write(f'***** time = * {fulltime:.4} *****\n')
         for i in np.arange(N):
             file.write(f'Ar {r[i][0]:.4f} {r[i][1]:.4f} {r[i][2]:.4f} {v[i][0]:.4f} {v[i][1]:.4f} {v[i][2]:.4f}\n')
 
-def init_system():
+def init_system(zero_v=False):
     global m
     global list_coords
-    for i in np.arange(N):
-       v[i] =  np.array([((SPEED - (-SPEED)) * np.random.random() + (-SPEED)) for _ in np.arange(DIM)])
+    if not zero_v:
+        for i in np.arange(N):
+            v[i] =  np.array([((SPEED - (-SPEED)) * np.random.random() + (-SPEED)) for _ in np.arange(DIM)])
     k = np.ceil(np.power(N, 1.0 / 3))
     dh = SIZE / k
     m = np.ones(N)
@@ -57,7 +58,6 @@ def init_system():
                     if lenght(dr[counter]) > L_FREE_MOTION:
                         print('init error')
                     counter += 1
-    list_coords = np.append(list_coords, r)
     print_to_file(0)
 
 def force_LD(r):
@@ -66,8 +66,7 @@ def force_LD(r):
     if r < rmin:
         return force_LD(rmin)
     x = sigma / r
-    #return -48 *  eps / sigma * (np.power(x, 13, dtype=np.float64) - 0.5 * np.power(x, 7, dtype=np.float64))
-    return -4 * eps / sigma * (12 * np.power(x, 13, dtype=np.float64) - 6 * np.power(x, 7, dtype=np.float64))
+    return -48 * eps * (np.power(x, 13, dtype=np.float64) - 0.5 * np.power(x, 7, dtype=np.float64))
 
 def potential_LD(r):
     if r > rcut:
@@ -79,30 +78,28 @@ def potential_LD(r):
 
 def verle_r(r, dr, f, m, dt): 
     return r + (dr + (f / (2 * m)) * np.square(dt))
-    #return 2*r-dr+(f/m)*np.square(dt)
+    #return 2*r-dr+(f/m)*np.square(dt)  
 
-def verle_v(r, dr, dt):
+def verle_v(dr, dt):
     return dr / (2 * dt)
     #return (r-dr)/(2*dt)
 
-def nim_fix(coord):
-    if coord >= SIZE / 2.0:
-        coord = SIZE - coord
-    elif coord <= -SIZE / 2.0:
-        coord = coord + SIZE
+def nim_fix(coord, size):
+    if coord >= size / 2.0:
+        coord = size - coord
+    elif coord <= -size / 2.0:
+        coord = coord + size
     return coord
 
 # nearist image method
 def nim(r1, r2, size):
-    x = -(r1[0] - r2[0])
-    y = -(r1[1] - r2[1])
-    z = -(r1[2] - r2[2])
-
-    dist = np.zeros(DIM)
-    dist[0] = nim_fix(x)
-    dist[1] = nim_fix(y)
-    dist[2] = nim_fix(z)
-
+    global b_nim_error
+    crds = np.array([(-(r1[i]-r2[i])) for i in np.arange(np.size(r1))])
+    dist = np.array([nim_fix(crd, size) for crd in crds])
+    if lenght(dist) > lenght(np.array([size, size, size])):
+        if not b_nim_error:
+            b_nim_error = True
+            print('nim error')
     return dist
 
 def lenght(r):
@@ -142,30 +139,30 @@ def integrate():
     global large_motion
     for i in np.arange(N):
         r_tmp = r[i].copy()
-        r[i] = verle_r(r[i], dr[i], f[i], m[i], dt)
-        dr[i] = r[i] - r_tmp
-        if lenght(dr[i]) > L_FREE_MOTION :
+        r[i] = verle_r(r[i], dr[i], f[i], m[i], dt) # вычсиляем координаты по алгоритму верле 
+        dr[i] = r[i] - r_tmp # вычисляем разность коорлинат 
+        if lenght(dr[i]) > L_FREE_MOTION : # если слишком большая разноть, то значть что-то не так
             if not large_motion:
                 large_motion = True
                 print(' - too large motion detected')
-        v[i] = verle_v(r[i], dr[i], dt)
+        v[i] = verle_v(dr[i], dt) # вычисялем скорость по алгоритму верле
         r[i] = pbc(r[i], SIZE)
 
 def main():
-    global list_coords
-    global time
+    global fulltime
     steps = 1000
     clear_file()
-    init_system()
+    st = time.time()
+    init_system(zero_v=True)
     with ChargingBar('Steps', max=steps, suffix='%(percent)d%%') as bar:
         for i in np.arange(1, steps+1):
             calc_forces()
             integrate()
-            list_coords = np.append(list_coords, r)
             print_to_file(i)
-            time += dt
+            fulltime += dt
             bar.next()
-    print('Done!')
+    ed = time.time()
+    print(f'Done! Time: {(ed - st):.3f}')
 
 if __name__ == '__main__':
     main()
