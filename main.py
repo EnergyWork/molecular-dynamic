@@ -1,6 +1,6 @@
 import numpy as np
 import time
-from progress.bar import ChargingBar
+from progress.bar import ChargingBar    
 
 large_motion = False
 b_nim_error = False
@@ -29,7 +29,7 @@ def clear_file():
 def new_frame(file_handle):
     file_handle.write(f'{N}\n')
 
-def print_to_file(ti):
+def print_to_file():
     global v
     global r
     global fulltime
@@ -58,7 +58,7 @@ def init_system(zero_v=False):
                     if lenght(dr[counter]) > L_FREE_MOTION:
                         print('init error')
                     counter += 1
-    print_to_file(0)
+    print_to_file()
 
 def force_LD(r):
     if r > rcut:
@@ -68,21 +68,11 @@ def force_LD(r):
     x = sigma / r
     return -48 * eps * (np.power(x, 13, dtype=np.float64) - 0.5 * np.power(x, 7, dtype=np.float64))
 
-def potential_LD(r):
-    if r > rcut:
-        return 0
-    if r < rmin:
-        return potential_LD(rmin)
-    x = sigma / r
-    return 4 * eps * (np.power(x, 12, dtype = np.float64) - np.power(x, 6, dtype = np.float64))
-
 def verle_r(r, dr, f, m, dt): 
     return r + (dr + (f / (2 * m)) * np.square(dt))
-    #return 2*r-dr+(f/m)*np.square(dt)  
 
 def verle_v(dr, dt):
     return dr / (2 * dt)
-    #return (r-dr)/(2*dt)
 
 def nim_fix(coord, size):
     if coord >= size / 2.0:
@@ -121,7 +111,7 @@ def calc_forces():
                 f[i] += _dr * ff
 
 def correct_coord(coord, left_boundary, right_boundary):
-    l = np.abs(right_boundary - left_boundary)
+    l = right_boundary - left_boundary
     d = 0
     if coord >= right_boundary:
         d = coord - left_boundary
@@ -138,9 +128,9 @@ def pbc(r, size):
 def integrate():
     global large_motion
     for i in np.arange(N):
-        r_tmp = r[i].copy()
-        r[i] = verle_r(r[i], dr[i], f[i], m[i], dt) # вычсиляем координаты по алгоритму верле 
-        dr[i] = r[i] - r_tmp # вычисляем разность коорлинат 
+        r_tmp = r[i].copy() # хранит t-dt
+        r[i] = verle_r(r[i], dr[i], f[i], m[i], dt) # вычсиляем координаты по алгоритму верле для t+dt
+        dr[i] = r[i] - r_tmp # вычисляем разность координат между t+dt и t
         if lenght(dr[i]) > L_FREE_MOTION : # если слишком большая разноть, то значть что-то не так
             if not large_motion:
                 large_motion = True
@@ -153,12 +143,12 @@ def main():
     steps = 1000
     clear_file()
     st = time.time()
-    init_system(zero_v=True)
+    init_system(zero_v=False)
     with ChargingBar('Steps', max=steps, suffix='%(percent)d%%') as bar:
         for i in np.arange(1, steps+1):
             calc_forces()
             integrate()
-            print_to_file(i)
+            print_to_file()
             fulltime += dt
             bar.next()
     ed = time.time()
