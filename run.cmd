@@ -1,1 +1,0 @@
-call jupyter.exe notebook

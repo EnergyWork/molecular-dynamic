@@ -1,5 +1,6 @@
 import numpy as np
 import time
+import math
 from progress.bar import ChargingBar    
 
 large_motion = False
@@ -81,6 +82,11 @@ def nim_fix(coord, size):
         coord = coord + size
     return coord
 
+def nim_vanilla(r1, r2, size):
+    crds = [(-(r1[i]-r2[i])) for i in range(len(r1))]
+    dist = [nim_fix(crd, size) for crd in crds]
+    return dist
+
 # nearist image method
 def nim(r1, r2, size):
     global b_nim_error
@@ -91,6 +97,9 @@ def nim(r1, r2, size):
             b_nim_error = True
             print('nim error')
     return dist
+
+def lenght_vanilla(r):
+    return math.sqrt(sum([r[i]**2 for i in range(len(r))]))
 
 def lenght(r):
     return np.sqrt(np.sum([np.square(r[i]) for i in np.arange(np.size(r))]))
@@ -155,4 +164,10 @@ def main():
     print(f'Done! Time: {(ed - st):.3f}')
 
 if __name__ == '__main__':
-    main()
+    #main()
+
+    a = [0.1, 0.1, 0.1]
+    b = [9.9, 9.8, 9.7]
+    dist = nim_vanilla(a, b, 10)
+    lenght_vanilla(dist)
+

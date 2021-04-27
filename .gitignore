@@ -1,5 +1,12 @@
 *.txt
 *.csv
+*.ipynb
+*.cmd
+*.xmol
+graphic.py
+
+*.exe
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
