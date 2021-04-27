@@ -142,7 +142,7 @@ class MDSystem:
     
 
 def main():
-    steps = 100
+    steps = 1000
     st = time.time()
     system = MDSystem(n_atoms=10, cube_size=3, dim=3, speed=2)
     system.init_system(zero_v=False)

@@ -17,8 +17,9 @@ int main()
     for (size_t i = 0; i < STEPS; i++) {
         mdsys->calc_forces();
         mdsys->integrate();
+        mdsys->print_to_file();
     }
     clock_t end = clock();
     double secs = (double)(end - start) / CLOCKS_PER_SEC;
-    cout << "Done!" << secs << " sec" << endl;
+    cout << "Done! " << secs << " sec" << endl;
 }
