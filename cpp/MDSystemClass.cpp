@@ -22,12 +22,16 @@ void MDSystem::clean_file()
     this->out.open(".\\cpp\\coords.xmol", ios::trunc);
     this->out.close();
     this->out.open(".\\cpp\\coords.xmol", ios::app);
+
+    this->dbg.open(".\\cpp\\debug.txt", ios::trunc);
+    this->dbg.close();
+    this->dbg.open(".\\cpp\\debug.txt", ios::app);
 }
 
 void MDSystem::print_to_file()
 {
     out << this->N << endl
-        << "***** time = *" << this->fulltime << "*****\n";
+        << "***** time = * " << this->fulltime << " *****\n";
     for (size_t i = 0; i < this->N; i++) {
         out << "Ar ";
         out << this->r[i][0] << " " << this->r[i][1] << " " << this->r[i][2] << " ";
@@ -39,7 +43,7 @@ double MDSystem::lenght(vector<double> vec)
 {   
     for (double &c: vec)
         c = pow(c, 2);
-    return accumulate(vec.begin(), vec.end(), 0);
+    return sqrt(accumulate(vec.begin(), vec.end(), 0));
 }
 
 double MDSystem::get_random_number(int min, int max)
@@ -62,7 +66,7 @@ void MDSystem::init_vars()
 
 void MDSystem::init_system(bool zero_v)
 {
-    srand(time(NULL));
+    srand(42); // srand(time(NULL));
     this->clean_file();
     vector<double> v_vec;
     for (size_t i = 0; i < this->N; i++) {
@@ -139,21 +143,23 @@ void MDSystem::add_force(vector<double> &force, vector<double> dr, double ff)
 
 void MDSystem::normalize(vector<double> &dr)
 {
+    double dr_len = lenght(dr);
     for (auto &el: dr)
-        el /= this->lenght(dr);
+        el /= dr_len;
 }
 
 vector<double> MDSystem::NIM(vector<double> r1, vector<double> r2, double s)
 {
     vector<double> tmp_crds, dist;
-    for (size_t i = 0; i < this->DIM; i++)
-        tmp_crds.push_back(this->NIM_fix(-(r1[i] - r2[i]), s));
+    for (size_t i = 0; i < DIM; i++)
+        tmp_crds.push_back(NIM_fix(-(r1[i] - r2[i]), s));
     dist = vector<double>{s, s, s};
-    if (this->lenght(tmp_crds) > this->lenght(dist))
-        if (!(this->b_nim_error)) {
-            this->b_nim_error = true;
+    if (lenght(tmp_crds) > lenght(dist)) {
+        if (!(b_nim_error)) {
+            b_nim_error = true;
             cout << "nim error" << endl;
         }
+    }
     return tmp_crds;
 }
 
@@ -169,16 +175,16 @@ double MDSystem::NIM_fix(double coord, double s)
 void MDSystem::calc_forces()
 {
     double ff, _rij;
-    for (size_t i = 0; i < this->N; i++) {
-        this->f.push_back(vector<double>(3));
-        for (size_t j = 0; j < this->N; j++){
+    for (size_t i = 0; i < N; i++) {
+        f.push_back(vector<double>(3));
+        for (size_t j = 0; j < N; j++){
             if (i != j) {
-                vector<double> rij = this->NIM(r[i], r[j], this->SIZE);
-                _rij = this->lenght(rij);
-                ff = this->force_LD(_rij);
+                vector<double> rij = NIM(r[i], r[j], SIZE);
+                _rij = lenght(rij);
+                ff = force_LD(_rij);
                 vector<double> dr = rij;
-                this->normalize(dr);
-                this->add_force(this->f[i], dr, ff);
+                normalize(dr);
+                add_force(f[i], dr, ff);
             }
         }
     }
@@ -193,15 +199,20 @@ vector<double> MDSystem::sub(vector<double> r1, vector<double> r2)
 }
 
 void MDSystem::PBC(vector<double> &r, double s)
-{
+{   
+    vector<double> tmpr = r;
+    
     for (auto &coord: r)
         coord = this->correct_coord(coord, 0, s);
+
+    dbg << tmpr[0] << setw(10) << tmpr[1] << setw(10) << tmpr[2] << setw(5) << " -> " << setw(5);
+    dbg << r[0] << setw(10) << r[1] << setw(10) << r[2] << endl;
 }
 
 double MDSystem::correct_coord(double coord, double left_bound, double right_bound)
 {
     double len = right_bound - left_bound;
-    double d;
+    double d = 0;
     if (coord >= right_bound) {
         d = coord - left_bound;
         coord -= len * floor(d / len);

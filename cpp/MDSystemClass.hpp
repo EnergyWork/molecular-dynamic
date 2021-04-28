@@ -2,18 +2,19 @@
 #include <vector>
 #include <string>
 #include <fstream>
+#include <iomanip>
 using namespace std;
 
 class MDSystem
 {
-private:
+public:
     uint32_t N, DIM;
     double SIZE, SPEED;
     bool large_motion, b_nim_error;
     double L_FREE_MOTION, dt, eps, sigma, rcut, rmin, fulltime;
     vector<vector<double>> r, dr, f, v;
     vector<double> m;
-    ofstream out;
+    ofstream out, dbg;
 
     void init_vars();
     void clean_file();
