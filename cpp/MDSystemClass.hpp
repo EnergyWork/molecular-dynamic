@@ -18,7 +18,6 @@ public: // replace with private
 
     void init_vars();
     void clean_file();
-    void new_frame();
     double force_LD(double vec_lenght);
     vector<double> verle_R(vector<double> r, vector<double> dr, vector<double> f, double m, double dt);
     vector<double> verle_V(vector<double> dr, double dt);

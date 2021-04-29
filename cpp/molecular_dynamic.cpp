@@ -3,12 +3,13 @@
 #include <string>
 #include <time.h>
 #include <math.h>
+#include <thread>
 #include "MDSystemClass.hpp"
 
 using namespace std;
 
 #define CLOCKS_PER_SEC 1000
-#define STEPS 10000
+#define STEPS 20000
 
 void print_vector(vector<double> vec)
 {
@@ -29,8 +30,8 @@ int main()
 {
     cout << "Start" << endl;
     clock_t start = clock();
-    MDSystem *mdsys = new MDSystem(3, 3, 3, 2); //n_atoms=10, cube_size=3, dim=3, speed=2
-    mdsys->init_system(true);
+    MDSystem *mdsys = new MDSystem(27, 3, 3, 2); //n_atoms=10, cube_size=3, dim=3, speed=2
+    mdsys->init_system(false);
     //test(mdsys);
     for (size_t i = 0; i < STEPS; i++) {
         mdsys->calc_forces();

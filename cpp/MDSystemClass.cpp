@@ -64,9 +64,9 @@ void MDSystem::init_vars()
     fulltime = dt;
 }
 
-void MDSystem::init_system(bool zero_v)
+void MDSystem::init_system(bool zero_v = false)
 {
-    srand(42); // srand(time(NULL));
+    srand(time(NULL));
     clean_file();
     vector<double> v_vec;
     for (size_t i = 0; i < N; i++) {
@@ -172,7 +172,7 @@ vector<double> MDSystem::NIM(vector<double> r1, vector<double> r2, double s)
 double MDSystem::NIM_fix(double coord, double s)
 {
     if (coord >= s / 2.) {
-        coord = s - coord; //coord - s;
+        coord = coord - s;
     } else if (coord <= -s / 2.) {
         coord = coord + s;
     }
