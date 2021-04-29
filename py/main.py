@@ -77,7 +77,7 @@ def verle_v(dr, dt):
 
 def nim_fix(coord, size):
     if coord >= size / 2.0:
-        coord = size - coord
+        coord = coord - size
     elif coord <= -size / 2.0:
         coord = coord + size
     return coord
@@ -123,11 +123,15 @@ def correct_coord(coord, left_boundary, right_boundary):
     l = right_boundary - left_boundary
     d = 0
     if coord >= right_boundary:
-        d = coord - left_boundary
-        coord = coord - l * np.floor(d / l)
+        d = np.floor(coord / l)
+        coord = coord - d * l
+        #d = coord - left_boundary
+        #coord = coord - l * np.floor(d / l)
     elif coord < left_boundary:
-        d = left_boundary - coord
-        coord = right_boundary - l * (d / l - np.floor(d / l))
+        d = np.floor(np.abs(coord) / l)
+        coord = right_boundary - (np.abs(coord) - d * l)
+        #d = left_boundary - coord
+        #coord = right_boundary - l * (d / l - np.floor(d / l)) # coord - l * (d / l - np.floor(d / l))
     return coord
 
 #periodic boundary condition
@@ -165,9 +169,6 @@ def main():
 
 if __name__ == '__main__':
     #main()
-
-    a = [0.1, 0.1, 0.1]
-    b = [9.9, 9.8, 9.7]
-    dist = nim_vanilla(a, b, 10)
-    lenght_vanilla(dist)
-
+    x = -11
+    x = correct_coord(x, 0, 7)
+    print(x)

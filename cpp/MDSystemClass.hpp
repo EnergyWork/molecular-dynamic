@@ -7,7 +7,7 @@ using namespace std;
 
 class MDSystem
 {
-public:
+public: // replace with private
     uint32_t N, DIM;
     double SIZE, SPEED;
     bool large_motion, b_nim_error;
@@ -24,12 +24,12 @@ public:
     vector<double> verle_V(vector<double> dr, double dt);
     vector<double> NIM(vector<double> r1, vector<double> r2, double s);
     double NIM_fix(double coord, double s);
-    void PBC(vector<double> &coords, double s);
+    vector<double> PBC(vector<double> coords, double s);
     double correct_coord(double coord, double left_bound, double right_bound);
     double lenght(vector<double> vec);
-    void normalize(vector<double> &coords);
+    vector<double> normalize(vector<double> vec);
     double get_random_number(int min, int max);
-    void add_force(vector<double> &force, vector<double> forces, double ff);
+    vector<double> add_force(vector<double> force, vector<double> dr, double ff);
     vector<double> sub(vector<double> r1, vector<double> r2);
 
 public:
@@ -37,5 +37,5 @@ public:
     void init_system(bool zero_v);
     void calc_forces();
     void integrate();
-    void print_to_file();
+    void print_to_file(bool isdbg);
 };

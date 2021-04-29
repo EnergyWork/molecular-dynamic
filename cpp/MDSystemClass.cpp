@@ -10,40 +10,40 @@ using namespace std;
 
 MDSystem::MDSystem(uint32_t n_atoms, double cube_size, uint32_t dim, double speed)
 {
-    this->N = n_atoms;
-    this->SIZE = cube_size;
-    this->DIM = dim;
-    this->SPEED = speed;
-    this->init_vars();
+   N = n_atoms;
+   SIZE = cube_size;
+   DIM = dim;
+   SPEED = speed;
+   init_vars();
 }
 
 void MDSystem::clean_file()
 {
-    this->out.open(".\\cpp\\coords.xmol", ios::trunc);
-    this->out.close();
-    this->out.open(".\\cpp\\coords.xmol", ios::app);
+   out.open(".\\cpp\\coords.xmol", ios::trunc);
+   out.close();
+   out.open(".\\cpp\\coords.xmol", ios::app);
 
-    this->dbg.open(".\\cpp\\debug.txt", ios::trunc);
-    this->dbg.close();
-    this->dbg.open(".\\cpp\\debug.txt", ios::app);
+   dbg.open(".\\cpp\\debug.txt", ios::trunc);
+   dbg.close();
+   dbg.open(".\\cpp\\debug.txt", ios::app);
 }
 
-void MDSystem::print_to_file()
+void MDSystem::print_to_file(bool debg = false)
 {
-    out << this->N << endl
-        << "***** time = * " << this->fulltime << " *****\n";
-    for (size_t i = 0; i < this->N; i++) {
+    out << N << endl << "***** time = * " << fulltime << " *****\n";
+    for (size_t i = 0; i < N; i++) {
         out << "Ar ";
-        out << this->r[i][0] << " " << this->r[i][1] << " " << this->r[i][2] << " ";
-        out << this->v[i][0] << " " << this->v[i][1] << " " << this->v[i][2] << endl;
+        out << fixed << setprecision(4) << r[i][0] << " " << r[i][1] << " " << r[i][2] << " ";
+        out << v[i][0] << " " << v[i][1] << " " << v[i][2] << endl;
     }
 }
 
 double MDSystem::lenght(vector<double> vec)
 {   
-    for (double &c: vec)
-        c = pow(c, 2);
-    return sqrt(accumulate(vec.begin(), vec.end(), 0));
+    double sum = 0;
+    for (double c: vec)
+        sum += pow(c, 2);
+    return sqrt(sum);
 }
 
 double MDSystem::get_random_number(int min, int max)
@@ -53,74 +53,74 @@ double MDSystem::get_random_number(int min, int max)
 
 void MDSystem::init_vars()
 {
-    this->large_motion = false;
-    this->b_nim_error = false;
-    this->L_FREE_MOTION = pow(pow(this->SIZE, 3), 1/3.) / (2. * this->N);
-    this->dt = 0.001;
-    this->eps = 1;
-    this->sigma = 1;
-    this->rcut = 2.5 * this->sigma;
-    this->rmin = 0.00001;
-    this->fulltime = this->dt;
+    large_motion = false;
+    b_nim_error = false;
+    L_FREE_MOTION = pow(pow(SIZE, 3.), 1./3.) / (2. * N);
+    dt = 0.001;
+    eps = 1.;
+    sigma = 1.;
+    rcut = 2.5 * sigma;
+    rmin = 0.00001;
+    fulltime = dt;
 }
 
 void MDSystem::init_system(bool zero_v)
 {
     srand(42); // srand(time(NULL));
-    this->clean_file();
+    clean_file();
     vector<double> v_vec;
-    for (size_t i = 0; i < this->N; i++) {
-        if (zero_v){
+    for (size_t i = 0; i < N; i++) {
+        if (zero_v) {
             v_vec = {0., 0., 0.};
         } else {
             v_vec = {
-                this->get_random_number(-this->SPEED, this->SPEED),
-                this->get_random_number(-this->SPEED, this->SPEED), 
-                this->get_random_number(-this->SPEED, this->SPEED)
+               get_random_number(-SPEED, SPEED),
+               get_random_number(-SPEED, SPEED), 
+               get_random_number(-SPEED, SPEED)
             };
         }
-        this->v.push_back(v_vec);
+        v.push_back(v_vec);
+        m.push_back(1.0);
     }
-    double k = ceil(pow(this->N, 1.0 / 3));
-    double dh = this->SIZE / k;
-    for (size_t i = 0; i < this->N; i++) {
-        this->m.push_back(1.0);
-    }
+    double k = ceil(pow(N, 1. / 3.));
+    double dh = SIZE / k;
     size_t counter = 0;
     for (size_t x = 0; x < k; x++) {
         for (size_t y = 0; y < k; y++) {
             for (size_t z = 0; z < k; z++){
-                if (counter < this->N) {
-                    vector<double> r = {(x + 1.0 / 2) * dh, (y + 1.0 / 2) * dh, (z + 1.0 / 2) * dh};
-                    vector<double> dr = {this->v[counter][0] * 2 * this->dt, this->v[counter][1] * 2 *this->dt, this->v[counter][2] * 2 * this->dt};
+                if (counter < N) {
+                    vector<double> r = { (x + 1. / 2.) * dh, (y + 1. / 2.) * dh, (z + 1. / 2.) * dh };
+                    vector<double> dr = { v[counter][0] * 2. * dt, v[counter][1] * 2. * dt, v[counter][2] * 2. * dt };
                     this->r.push_back(r);
                     this->dr.push_back(dr);
-                    if (this->lenght(dr) > this->L_FREE_MOTION) {
+                    if (lenght(dr) > L_FREE_MOTION) {
                         cout << "init system error" << endl;
                     }
                     counter++;
+                } else {
+                    break;
                 }
             }
         }
     }
-    this->print_to_file();
+    print_to_file();
 }
 
 double MDSystem::force_LD(double len)
 {
-    if (len > this->rcut)
-        return 0;
-    if (len < this->rmin)
-        return this->force_LD(this->rmin);
-    double x = this->sigma / len;
-    return -48. * this->eps * (pow(x, 13.) - 0.5 * pow(x, 7.));
+    if (len > rcut)
+        return 0.;
+    if (len < rmin)
+        return force_LD(rmin);
+    double x = sigma / len;
+    return -48. * eps * (pow(x, 13.) - 0.5 * pow(x, 7.));
 }
 
 vector<double> MDSystem::verle_R(vector<double> r, vector<double> dr, vector<double> f, double m, double dt)
 {
     vector<double> tmpr;
-    for (size_t i = 0; i < this->DIM; i++) {
-        tmpr.push_back(r[i] + (dr[i] + (f[i] / (2 * m)) * pow(dt, 2)));
+    for (size_t i = 0; i < DIM; i++) {
+        tmpr.push_back(r[i] + (dr[i] + (f[i] / (2. * m)) * pow(dt, 2.)));
     }
     return tmpr;
 }
@@ -128,33 +128,38 @@ vector<double> MDSystem::verle_R(vector<double> r, vector<double> dr, vector<dou
 vector<double> MDSystem::verle_V(vector<double> dr, double dt)
 {
     vector<double> tmpv;
-    for (auto el: dr)
-        tmpv.push_back(el / (2 * dt));
+    for (double el: dr)
+        tmpv.push_back(el / (2. * dt));
     return tmpv;
 }
 
-void MDSystem::add_force(vector<double> &force, vector<double> dr, double ff)
+vector<double> MDSystem::add_force(vector<double> force, vector<double> dr, double ff)
 {
-    for (auto &el: dr)
-        el *= ff;
-    for (size_t i = 0; i < force.size(); i++)
-        force[i] += dr[i];
+    vector<double> forces_sum;
+    for (size_t i = 0; i < DIM; i++)
+        forces_sum.push_back(force[i] + dr[i] * ff);
+    return forces_sum;
 }
 
-void MDSystem::normalize(vector<double> &dr)
+vector<double> MDSystem::normalize(vector<double> dr)
 {
+    vector<double> tmp;
     double dr_len = lenght(dr);
-    for (auto &el: dr)
-        el /= dr_len;
+    for (double el: dr)
+        tmp.push_back(el / dr_len);
+    return tmp;
 }
 
 vector<double> MDSystem::NIM(vector<double> r1, vector<double> r2, double s)
 {
-    vector<double> tmp_crds, dist;
-    for (size_t i = 0; i < DIM; i++)
-        tmp_crds.push_back(NIM_fix(-(r1[i] - r2[i]), s));
-    dist = vector<double>{s, s, s};
-    if (lenght(tmp_crds) > lenght(dist)) {
+    vector<double> tmp_crds;
+    for (size_t i = 0; i < DIM; i++) {
+        double n = -(r1[i] - r2[i]);
+        double fixed_coord = NIM_fix(n, s);
+        tmp_crds.push_back(fixed_coord);
+    }
+    vector<double> dst = vector<double>{s, s, s};
+    if (lenght(tmp_crds) > lenght(dst)) {
         if (!(b_nim_error)) {
             b_nim_error = true;
             cout << "nim error" << endl;
@@ -165,26 +170,29 @@ vector<double> MDSystem::NIM(vector<double> r1, vector<double> r2, double s)
 
 double MDSystem::NIM_fix(double coord, double s)
 {
-    if (coord >= s / 2.)
-        coord -= s;
-    else if (coord <= -s / 2.)
-        coord += s;
+    if (coord >= s / 2.) {
+        coord = s - coord;
+    } else if (coord <= -s / 2.) {
+        coord = coord + s;
+    }
     return coord;
 }
 
 void MDSystem::calc_forces()
 {
-    double ff, _rij;
+    vector<double> rij, _dr;
+    double ff = 0, _rij = 0;
     for (size_t i = 0; i < N; i++) {
         f.push_back(vector<double>(3));
-        for (size_t j = 0; j < N; j++){
+        for (size_t j = 0; j < N; j++) {
             if (i != j) {
-                vector<double> rij = NIM(r[i], r[j], SIZE);
+                rij = NIM(r[i], r[j], SIZE);
+                //dbg << fixed << setprecision(5) << rij[0] << "  " << rij[1] << "  " << rij[2] << endl;
                 _rij = lenght(rij);
                 ff = force_LD(_rij);
-                vector<double> dr = rij;
-                normalize(dr);
-                add_force(f[i], dr, ff);
+                _dr = rij;
+                _dr = normalize(_dr);
+                f[i] = add_force(f[i], _dr, ff);
             }
         }
     }
@@ -193,51 +201,48 @@ void MDSystem::calc_forces()
 vector<double> MDSystem::sub(vector<double> r1, vector<double> r2)
 {
     vector<double> tmp;
-    for (size_t i = 0; i < this->DIM; i++)
+    for (size_t i = 0; i < DIM; i++)
         tmp.push_back(r1[i] - r2[i]);
     return tmp;
 }
 
-void MDSystem::PBC(vector<double> &r, double s)
+vector<double> MDSystem::PBC(vector<double> r, double s)
 {   
-    vector<double> tmpr = r;
-    
-    for (auto &coord: r)
-        coord = this->correct_coord(coord, 0, s);
-
-    dbg << tmpr[0] << setw(10) << tmpr[1] << setw(10) << tmpr[2] << setw(5) << " -> " << setw(5);
-    dbg << r[0] << setw(10) << r[1] << setw(10) << r[2] << endl;
+    vector<double> tmp;
+    for (double coord: r)
+        tmp.push_back(correct_coord(coord, 0., s));
+    return tmp;
 }
 
 double MDSystem::correct_coord(double coord, double left_bound, double right_bound)
 {
     double len = right_bound - left_bound;
-    double d = 0;
+    double d;
     if (coord >= right_bound) {
-        d = coord - left_bound;
-        coord -= len * floor(d / len);
+        d = floor(coord / len);
+        coord = coord - d * len;
     } else if (coord < left_bound) {
-        d = left_bound - coord;
-        coord = right_bound - len * (d / len - floor(d / len));
+        d = floor(abs(coord) / len);
+        coord = right_bound - (abs(coord) - d * len);
     }
     return coord;
 }
 
 void MDSystem::integrate()
 {
-    vector<double> r_tmp;
-    for (size_t i = 0; i < this->N; i++) {
-        r_tmp = this->r[i];
-        this->r[i] = this->verle_R(this->r[i], this->dr[i], this->f[i], this->m[i], this->dt);
-        this->dr[i] = sub(this->r[i], r_tmp);
-        if (this->lenght(dr[i]) > this->L_FREE_MOTION) {
-            if (!(this->large_motion)) {
-                this->large_motion = true;
+    for (size_t i = 0; i < N; i++) {
+        vector<double> r_tmp = r[i];
+        r[i] = verle_R(r[i], dr[i], f[i], m[i], dt);
+        dbg << fixed << setprecision(9) << r[i][0] << "  " << r[i][1] << "  " << r[i][2] << endl;
+        dr[i] = sub(r[i], r_tmp);
+        if (lenght(dr[i]) > L_FREE_MOTION) {
+            if (!(large_motion)) {
+                large_motion = true;
                 cout << "too large motion detected" << endl;
             }
         }
-        this->v[i] = this->verle_V(this->dr[i], this->dt);
-        this->fulltime += this->dt;
-        this->PBC(this->r[i], this->SIZE);
+        v[i] = verle_V(dr[i], dt);
+        r[i] = PBC(r[i], SIZE);
+        fulltime += dt;
     }
 }
