@@ -73,7 +73,7 @@ class MDSystem:
         if r < self.__rmin:
             return self.__force_LD(self.__rmin)
         x = self.__sigma / r
-        return -48 * self.__eps * (np.power(x, 13, dtype=np.float64) - 0.5 * np.power(x, 7, dtype=np.float64))
+        return -48 * self.__eps / self.__sigma * (np.power(x, 13, dtype=np.float64) - 0.5 * np.power(x, 7, dtype=np.float64))
 
     def __verle_r(self, r, dr, f, m, dt):
         return r + (dr + (f / (2 * m)) * np.square(dt))
@@ -112,9 +112,15 @@ class MDSystem:
                     rij = self.__nim(self.__r[i], self.__r[j], self.__SIZE)
                     _rij = self.__lenght(rij)
                     ff = self.__force_LD(_rij)
+                    # with open('.\\py\\debug.txt', 'a', encoding='utf-8') as fdbg:
+                    #     strdbg = f"{ff:.9f}\n"
+                    #     fdbg.write(strdbg)
                     _dr = rij.copy()
                     _dr = self.__normalaize(_dr)
                     self.__f[i] += _dr * ff
+            # with open('.\\py\\debug.txt', 'a', encoding='utf-8') as fdbg:
+            #     strdbg = f"{ self.__f[i][0]:.9f}  { self.__f[i][1]:.9f}  { self.__f[i][2]:.9f}\n"
+            #     fdbg.write(strdbg)
 
     def __correct_coord(self, coord, left_boundary, right_boundary):
         l = right_boundary - left_boundary
@@ -136,9 +142,9 @@ class MDSystem:
             r_tmp = self.__r[i].copy() # хранит t-dt
             self.__r[i] = self.__verle_r(self.__r[i], self.__dr[i], self.__f[i], self.__m[i], self.__dt) # вычсиляем координаты по алгоритму верле для t+dt
             self.__dr[i] = self.__r[i] - r_tmp # вычисляем разность координат между t+dt и t
-            with open('.\\py\\debug.txt', 'a', encoding='utf-8') as fdbg:
-                strdbg = f"{ self.__r[i][0]:.9f}  { self.__r[i][1]:.9f}  { self.__r[i][2]:.9f}\n"
-                fdbg.write(strdbg)
+            # with open('.\\py\\debug.txt', 'a', encoding='utf-8') as fdbg:
+            #     strdbg = f"{ self.__r[i][0]:.9f}  { self.__r[i][1]:.9f}  { self.__r[i][2]:.9f}\n"
+            #     fdbg.write(strdbg)
             if self.__lenght(self.__dr[i]) > self.__L_FREE_MOTION : # если слишком большая разноть, то значть что-то не так
                 if not self.__large_motion:
                     self.__large_motion = True

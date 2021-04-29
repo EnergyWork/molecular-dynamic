@@ -8,7 +8,7 @@
 using namespace std;
 
 #define CLOCKS_PER_SEC 1000
-#define STEPS 1000
+#define STEPS 10000
 
 void print_vector(vector<double> vec)
 {
@@ -19,8 +19,10 @@ void print_vector(vector<double> vec)
 
 void test(MDSystem *sys)
 {
-    auto r1 = vector<double>{1, 1, 1};
-    auto r2 = vector<double>{3, 2, 4};
+    auto r1 = vector<double>{0.75, -1.5, 3};
+    //auto r2 = vector<double>{3, 2, 4};
+    cout << 0.75 / sys->lenght(r1) << endl;
+    print_vector(sys->normalize(r1));
 }
 
 int main()
@@ -29,7 +31,7 @@ int main()
     clock_t start = clock();
     MDSystem *mdsys = new MDSystem(3, 3, 3, 2); //n_atoms=10, cube_size=3, dim=3, speed=2
     mdsys->init_system(true);
-    // test(mdsys);
+    //test(mdsys);
     for (size_t i = 0; i < STEPS; i++) {
         mdsys->calc_forces();
         mdsys->integrate();

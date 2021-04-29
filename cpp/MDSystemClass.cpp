@@ -60,7 +60,7 @@ void MDSystem::init_vars()
     eps = 1.;
     sigma = 1.;
     rcut = 2.5 * sigma;
-    rmin = 0.00001;
+    rmin = 0.000001;
     fulltime = dt;
 }
 
@@ -81,6 +81,7 @@ void MDSystem::init_system(bool zero_v)
         }
         v.push_back(v_vec);
         m.push_back(1.0);
+        f.push_back(vector<double>(DIM));
     }
     double k = ceil(pow(N, 1. / 3.));
     double dh = SIZE / k;
@@ -171,7 +172,7 @@ vector<double> MDSystem::NIM(vector<double> r1, vector<double> r2, double s)
 double MDSystem::NIM_fix(double coord, double s)
 {
     if (coord >= s / 2.) {
-        coord = s - coord;
+        coord = s - coord; //coord - s;
     } else if (coord <= -s / 2.) {
         coord = coord + s;
     }
@@ -180,21 +181,21 @@ double MDSystem::NIM_fix(double coord, double s)
 
 void MDSystem::calc_forces()
 {
-    vector<double> rij, _dr;
-    double ff = 0, _rij = 0;
     for (size_t i = 0; i < N; i++) {
-        f.push_back(vector<double>(3));
+        f[i] = vector<double>(DIM);
         for (size_t j = 0; j < N; j++) {
             if (i != j) {
-                rij = NIM(r[i], r[j], SIZE);
-                //dbg << fixed << setprecision(5) << rij[0] << "  " << rij[1] << "  " << rij[2] << endl;
-                _rij = lenght(rij);
-                ff = force_LD(_rij);
-                _dr = rij;
+                vector<double> rij = NIM(r[i], r[j], SIZE);
+                //dbg << fixed << setprecision(9) << rij[0] << "  " << rij[1] << "  " << rij[2] << endl;
+                double _rij = lenght(rij);
+                double ff = force_LD(_rij);
+                //dbg << fixed << setprecision(9) << ff << endl;
+                vector<double> _dr = rij;
                 _dr = normalize(_dr);
                 f[i] = add_force(f[i], _dr, ff);
             }
         }
+        //dbg << fixed << setprecision(9) << f[i][0] << "  " << f[i][1] << "  " << f[i][2] << endl;
     }
 }
 
@@ -233,7 +234,7 @@ void MDSystem::integrate()
     for (size_t i = 0; i < N; i++) {
         vector<double> r_tmp = r[i];
         r[i] = verle_R(r[i], dr[i], f[i], m[i], dt);
-        dbg << fixed << setprecision(9) << r[i][0] << "  " << r[i][1] << "  " << r[i][2] << endl;
+        //dbg << fixed << setprecision(9) << r[i][0] << "  " << r[i][1] << "  " << r[i][2] << endl;
         dr[i] = sub(r[i], r_tmp);
         if (lenght(dr[i]) > L_FREE_MOTION) {
             if (!(large_motion)) {

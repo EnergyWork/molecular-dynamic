@@ -169,6 +169,11 @@ def main():
 
 if __name__ == '__main__':
     #main()
-    x = -11
-    x = correct_coord(x, 0, 7)
-    print(x)
+    #x = -11
+    #x = correct_coord(x, 0, 7)
+    #print(x)
+    print(1.243893907 * 2)
+    # a = np.array([0.75, -1.5, 3])
+    # l = lenght(a)
+    # print(0.75 / l)
+    # print(normalaize(a))
