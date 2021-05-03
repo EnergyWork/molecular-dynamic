@@ -1,20 +1,12 @@
 #include "MDSystemClass.hpp"
-#include <iostream>
-#include <vector>
-#include <string>
-#include <time.h>
-#include <math.h>
-#include <algorithm>
-#include <numeric>
-using namespace std;
 
 MDSystem::MDSystem(uint32_t n_atoms, double cube_size, uint32_t dim, double speed)
 {
-   N = n_atoms;
-   SIZE = cube_size;
-   DIM = dim;
-   SPEED = speed;
-   init_vars();
+    N = n_atoms;
+    SIZE = cube_size;
+    DIM = dim;
+    SPEED = speed;
+    init_vars();
 }
 
 void MDSystem::clean_file()
@@ -22,13 +14,22 @@ void MDSystem::clean_file()
    out.open(".\\cpp\\coords.xmol", ios::trunc);
    out.close();
    out.open(".\\cpp\\coords.xmol", ios::app);
-
-   dbg.open(".\\cpp\\debug.txt", ios::trunc);
-   dbg.close();
-   dbg.open(".\\cpp\\debug.txt", ios::app);
 }
 
-void MDSystem::print_to_file(bool debg = false)
+void MDSystem::init_vars()
+{
+    large_motion = false;
+    b_nim_error = false;
+    L_FREE_MOTION = pow(pow(SIZE, 3.), 1./3.) / (2. * N);
+    dt = 0.001;
+    eps = 1.;
+    sigma = 1.;
+    rcut = 2.5 * sigma;
+    rmin = 0.000001;
+    fulltime = dt;
+}
+
+void MDSystem::print_to_file()
 {
     out << N << endl << "***** time = * " << fulltime << " *****\n";
     for (size_t i = 0; i < N; i++) {
@@ -49,19 +50,6 @@ double MDSystem::lenght(vector<double> vec)
 double MDSystem::get_random_number(int min, int max)
 {
     return (double)min + (rand() / (RAND_MAX / ((double)max - (double)min)));
-}
-
-void MDSystem::init_vars()
-{
-    large_motion = false;
-    b_nim_error = false;
-    L_FREE_MOTION = pow(pow(SIZE, 3.), 1./3.) / (2. * N);
-    dt = 0.001;
-    eps = 1.;
-    sigma = 1.;
-    rcut = 2.5 * sigma;
-    rmin = 0.000001;
-    fulltime = dt;
 }
 
 void MDSystem::init_system(bool zero_v = false)
@@ -179,25 +167,6 @@ double MDSystem::NIM_fix(double coord, double s)
     return coord;
 }
 
-void MDSystem::calc_forces()
-{
-    for (size_t i = 0; i < N; i++) {
-        f[i] = vector<double>(DIM);
-        for (size_t j = 0; j < N; j++) {
-            if (i != j) {
-                vector<double> rij = NIM(r[i], r[j], SIZE);
-                //dbg << fixed << setprecision(9) << rij[0] << "  " << rij[1] << "  " << rij[2] << endl;
-                double _rij = lenght(rij);
-                double ff = force_LD(_rij);
-                //dbg << fixed << setprecision(9) << ff << endl;
-                vector<double> _dr = rij;
-                _dr = normalize(_dr);
-                f[i] = add_force(f[i], _dr, ff);
-            }
-        }
-        //dbg << fixed << setprecision(9) << f[i][0] << "  " << f[i][1] << "  " << f[i][2] << endl;
-    }
-}
 
 vector<double> MDSystem::sub(vector<double> r1, vector<double> r2)
 {
@@ -215,6 +184,7 @@ vector<double> MDSystem::PBC(vector<double> r, double s)
     return tmp;
 }
 
+
 double MDSystem::correct_coord(double coord, double left_bound, double right_bound)
 {
     double len = right_bound - left_bound;
@@ -229,12 +199,28 @@ double MDSystem::correct_coord(double coord, double left_bound, double right_bou
     return coord;
 }
 
+void MDSystem::calc_forces()
+{
+    for (size_t i = 0; i < N; i++) {
+        f[i] = vector<double>(DIM);
+        for (size_t j = 0; j < N; j++) {
+            if (i != j) {
+                vector<double> rij = NIM(r[i], r[j], SIZE);
+                double _rij = lenght(rij);
+                double ff = force_LD(_rij);
+                vector<double> _dr = rij;
+                _dr = normalize(_dr);
+                f[i] = add_force(f[i], _dr, ff);
+            }
+        }
+    }
+}
+
 void MDSystem::integrate()
 {
     for (size_t i = 0; i < N; i++) {
         vector<double> r_tmp = r[i];
         r[i] = verle_R(r[i], dr[i], f[i], m[i], dt);
-        //dbg << fixed << setprecision(9) << r[i][0] << "  " << r[i][1] << "  " << r[i][2] << endl;
         dr[i] = sub(r[i], r_tmp);
         if (lenght(dr[i]) > L_FREE_MOTION) {
             if (!(large_motion)) {

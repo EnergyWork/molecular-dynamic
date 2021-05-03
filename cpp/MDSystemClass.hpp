@@ -1,9 +1,6 @@
-#include <iostream>
-#include <vector>
-#include <string>
-#include <fstream>
-#include <iomanip>
-using namespace std;
+#pragma once
+#include "Headers.hpp"
+#include "AtomClass.hpp"
 
 class MDSystem
 {
@@ -12,9 +9,10 @@ public: // replace with private
     double SIZE, SPEED;
     bool large_motion, b_nim_error;
     double L_FREE_MOTION, dt, eps, sigma, rcut, rmin, fulltime;
+    ofstream out, dbg;
+    
     vector<vector<double>> r, dr, f, v;
     vector<double> m;
-    ofstream out, dbg;
 
     void init_vars();
     void clean_file();
