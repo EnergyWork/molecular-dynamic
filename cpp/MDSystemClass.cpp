@@ -49,7 +49,7 @@ double MDSystem::lenght(vector<double> vec)
 
 double MDSystem::get_random_number(int min, int max)
 {
-    return (double)min + (rand() / (RAND_MAX / ((double)max - (double)min)));
+    return (double)min + (rand() / (RAND_MAX / ((double)max - (double)min))); // dasdhaskdjadhad ATOM CLASS BRANCH
 }
 
 void MDSystem::init_system(bool zero_v = false)
