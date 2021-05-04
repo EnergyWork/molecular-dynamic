@@ -68,4 +68,15 @@ public:
     size_t size() {
         return data.size();
     }
+    double length() {
+        double sum = 0;
+        for (double c: data)
+            sum += pow(c, 2);
+        return sqrt(sum);
+    }
+    void normalize() {
+        double dr_len = this->length();
+        for (double& el: data)
+            el = el / dr_len;
+    }
 };

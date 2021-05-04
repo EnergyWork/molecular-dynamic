@@ -29,6 +29,7 @@ void MDSystem::init_vars()
     fulltime = dt;
 }
 
+//rewrite
 void MDSystem::print_to_file()
 {
     out << N << endl << "***** time = * " << fulltime << " *****\n";
@@ -39,8 +40,8 @@ void MDSystem::print_to_file()
     }
 }
 
-//delete, removed into Vector structutre
-double MDSystem::lenght(Vector vect)
+//delete, removed into Vector3d structutre
+double MDSystem::lenght(Vector3d vect)
 {   
     double sum = 0;
     for (double c: vect)
@@ -53,11 +54,12 @@ double MDSystem::get_random_number(int min, int max)
     return (double)min + (rand() / (RAND_MAX / ((double)max - (double)min)));
 }
 
+//rewrite
 void MDSystem::init_system(bool zero_v = false)
 {
     srand(time(NULL));
     clean_file();
-    Vector v_vec;
+    Vector3d v_vec;
     for (size_t i = 0; i < N; i++) {
         if (zero_v) {
             v_vec = {0., 0., 0.};
@@ -70,7 +72,7 @@ void MDSystem::init_system(bool zero_v = false)
         }
         v.push_back(v_vec);
         m.push_back(1.0);
-        f.push_back(Vector(DIM));
+        f.push_back(Vector3d(DIM));
     }
     double k = ceil(pow(N, 1. / 3.));
     double dh = SIZE / k;
@@ -79,8 +81,8 @@ void MDSystem::init_system(bool zero_v = false)
         for (size_t y = 0; y < k; y++) {
             for (size_t z = 0; z < k; z++){
                 if (counter < N) {
-                    Vector r = { (x + 1. / 2.) * dh, (y + 1. / 2.) * dh, (z + 1. / 2.) * dh };
-                    Vector dr = { v[counter][0] * 2. * dt, v[counter][1] * 2. * dt, v[counter][2] * 2. * dt };
+                    Vector3d r = { (x + 1. / 2.) * dh, (y + 1. / 2.) * dh, (z + 1. / 2.) * dh };
+                    Vector3d dr = { v[counter][0] * 2. * dt, v[counter][1] * 2. * dt, v[counter][2] * 2. * dt };
                     this->r.push_back(r);
                     this->dr.push_back(dr);
                     if (lenght(dr) > L_FREE_MOTION) {
@@ -105,51 +107,52 @@ double MDSystem::force_LD(double len)
     double x = sigma / len;
     return -48. * eps * (pow(x, 13.) - 0.5 * pow(x, 7.));
 }
-
-Vector MDSystem::verle_R(Vector r, Vector dr, Vector f, double m, double dt)
+//rewrite
+Vector3d MDSystem::verle_R(Vector3d r, Vector3d dr, Vector3d f, double m, double dt)
 {
-    Vector tmpr;
+    Vector3d tmpr;
     for (size_t i = 0; i < DIM; i++) {
         tmpr.push_back(r[i] + (dr[i] + (f[i] / (2. * m)) * pow(dt, 2.)));
     }
     return tmpr;
 }
-
-Vector MDSystem::verle_V(Vector dr, double dt)
+//rewrite
+Vector3d MDSystem::verle_V(Vector3d dr, double dt)
 {
-    Vector tmpv;
+    Vector3d tmpv;
     for (double el: dr)
         tmpv.push_back(el / (2. * dt));
     return tmpv;
 }
 
-Vector MDSystem::add_force(Vector force, Vector dr, double ff)
+//delete
+Vector3d MDSystem::add_force(Vector3d force, Vector3d dr, double ff)
 {
-    Vector forces_sum;
+    Vector3d forces_sum;
     for (size_t i = 0; i < DIM; i++)
         forces_sum.push_back(force[i] + dr[i] * ff);
     return forces_sum;
 }
 
-//delete, removed into Vector
-Vector MDSystem::normalize(Vector dr)
+//delete, removed into Vector3d
+Vector3d MDSystem::normalize(Vector3d dr)
 {
-    Vector tmp;
+    Vector3d tmp;
     double dr_len = lenght(dr);
     for (double el: dr)
         tmp.push_back(el / dr_len);
     return tmp;
 }
 
-Vector MDSystem::NIM(Vector r1, Vector r2, double s)
+Vector3d MDSystem::NIM(Vector3d r1, Vector3d r2, double s)
 {
-    Vector tmp_crds;
+    Vector3d tmp_crds;
     for (size_t i = 0; i < DIM; i++) {
         double n = -(r1[i] - r2[i]);
         double fixed_coord = NIM_fix(n, s);
         tmp_crds.push_back(fixed_coord);
     }
-    Vector dst = Vector{s, s, s};
+    Vector3d dst = Vector3d{s, s, s};
     if (lenght(tmp_crds) > lenght(dst)) {
         if (!(b_nim_error)) {
             b_nim_error = true;
@@ -169,19 +172,19 @@ double MDSystem::NIM_fix(double coord, double s)
     return coord;
 }
 
-//deleet, removed into Vector structure
-Vector MDSystem::sub(Vector r1, Vector r2)
+//deleet, removed into Vector3d structure
+Vector3d MDSystem::sub(Vector3d r1, Vector3d r2)
 {
-    Vector tmp;
+    Vector3d tmp;
     for (size_t i = 0; i < DIM; i++)
         tmp.push_back(r1[i] - r2[i]);
     return tmp;
 }
 
 //delete, removed into AtomClass
-Vector MDSystem::PBC(Vector r, double s)
+Vector3d MDSystem::PBC(Vector3d r, double s)
 {   
-    Vector tmp;
+    Vector3d tmp;
     for (double coord: r)
         tmp.push_back(correct_coord(coord, 0., s));
     return tmp;
@@ -205,13 +208,13 @@ double MDSystem::correct_coord(double coord, double left_bound, double right_bou
 void MDSystem::calc_forces()
 {
     for (size_t i = 0; i < N; i++) {
-        f[i] = Vector(DIM); // delete or -> Atoms[i].f = Vector(DIM);
+        f[i] = Vector3d(DIM); // delete or -> Atoms[i].f = Vector3d(DIM);
         for (size_t j = 0; j < N; j++) {
             if (i != j) {
-                Vector rij = NIM(r[i], r[j], SIZE); // -> NIM(Atoms[i].r, Atoms[j].r, SIZE);
+                Vector3d rij = NIM(r[i], r[j], SIZE); // -> NIM(Atoms[i].r, Atoms[j].r, SIZE);
                 double _rij = lenght(rij); // -> rij.lenght();
                 double ff = force_LD(_rij);
-                Vector _dr = normalize(rij); // -> rij.normalize()
+                Vector3d _dr = normalize(rij); // -> rij.normalize()
                 f[i] = add_force(f[i], _dr, ff); // -> Atom[i].f += rij * ff
             }
         }
@@ -221,7 +224,7 @@ void MDSystem::calc_forces()
 void MDSystem::integrate()
 {
     for (size_t i = 0; i < N; i++) {
-        Vector r_tmp = r[i]; // -> Atom tmp = Atoms[i];
+        Vector3d r_tmp = r[i]; // -> Atom tmp = Atoms[i];
         r[i] = verle_R(r[i], dr[i], f[i], m[i], dt); // -> Atoms[i].r = verle_R(Atoms[i], dt);
         dr[i] = sub(r[i], r_tmp); // -> Atoms[i].dr = Atoms[i].r - tmp;
         if (lenght(dr[i]) > L_FREE_MOTION) { // -> Atoms[i].dr.lenght();
