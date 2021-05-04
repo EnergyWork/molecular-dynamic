@@ -34,5 +34,5 @@ public:
     void init_system(bool zero_v);
     void calc_forces();
     void integrate();
-    void print_to_file(bool isdbg);
+    void print_to_file();
 };
