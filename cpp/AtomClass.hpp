@@ -1,7 +1,5 @@
 #include "Headers.hpp"
 
-typedef vector<Atom> Atoms;
-
 class Atom 
 {
 private:
@@ -34,7 +32,18 @@ public:
     }
     void pbc(double s)
     {
-        for (size_t i = 0; i < r.size(); i++)
+        for (size_t i = 0; i < r.size(); i++) {
+            //r.set(i, correct_coord(r[i], 0., s));
             r[i] = correct_coord(r[i], 0., s);
+        }
     }
-}
+    Atom& operator = (const Atom& atom) 
+    {
+        this->r = atom.r;
+        this->dr = atom.dr;
+        this->f = atom.f;
+        this->v = atom.v;
+        this->m = atom.m;
+        return *this;
+    }
+};

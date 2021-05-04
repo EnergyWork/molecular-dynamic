@@ -53,10 +53,10 @@ Vector3d MDSystem::generate_v(bool zero_v)
         return Vector3d(tmp);
     }
 }
-pair<Vector3d, Vector3d> MDSystem::generate_r_dr(size_t x, size_t y, size_t z, double dh)
+pair<Vector3d, Vector3d> MDSystem::generate_r_dr(size_t x, size_t y, size_t z, double dh, Vector3d v)
 {
     Vector3d r = Vector3d(vector<double>({ (x + 1. / 2.) * dh, (y + 1. / 2.) * dh, (z + 1. / 2.) * dh }));
-    Vector3d dr = Vector3d(vector<double>({ v[counter][0] * 2. * dt, v[counter][1] * 2. * dt, v[counter][2] * 2. * dt }));
+    Vector3d dr = Vector3d(vector<double>({ v[0] * (2. * dt), v[1] * (2. * dt), v[2] * (2. * dt) }));
     return make_pair(r, dr);
 }
 void MDSystem::init_system(bool zero_v = false)
@@ -74,7 +74,7 @@ void MDSystem::init_system(bool zero_v = false)
                     tmp.v = generate_v(zero_v);
                     tmp.m = 1.0;
                     tmp.f = Vector3d();
-                    pair<Vector3d, Vector3d> gen_r_dr = generate_r_dr(x, y, z, dh);
+                    pair<Vector3d, Vector3d> gen_r_dr = generate_r_dr(x, y, z, dh, tmp.v);
                     tmp.r = gen_r_dr.first;
                     tmp.dr = gen_r_dr.second;
                     if (tmp.dr.length() > L_FREE_MOTION) {
@@ -114,10 +114,10 @@ Vector3d MDSystem::NIM(Vector3d r1, Vector3d r2, double s)
     for (size_t i = 0; i < DIM; i++) {
         double n = -(r1[i] - r2[i]);
         double fixed_coord = NIM_fix(n, s);
-        tmp_crds.push_back(fixed_coord);
+        tmp_crds.push(fixed_coord);
     }
-    Vector3d dst = Vector3d{s, s, s};
-    if (lenght(tmp_crds) > lenght(dst)) {
+    Vector3d dst = Vector3d(vector<double>({s, s, s}));
+    if (tmp_crds.length() > dst.length()) {
         if (!(b_nim_error)) {
             b_nim_error = true;
             cout << "nim error" << endl;
@@ -137,13 +137,13 @@ double MDSystem::NIM_fix(double coord, double s)
 void MDSystem::calc_forces()
 {
     for (size_t i = 0; i < N; i++) {
-        atoms[i].f.clear();
+        //atoms[i].f.clear();
         for (size_t j = 0; j < N; j++) {
             if (i != j) {
                 Vector3d rij = NIM(atoms[i].r, atoms[j].r, SIZE);
-                double _rij = rij.lenght();
+                double _rij = rij.length();
                 double ff = force_LD(_rij);
-                Vector3d _dr = rij.normalize();
+                rij.normalize();
                 atoms[i].f += (rij * ff);
             }
         }
@@ -154,8 +154,8 @@ void MDSystem::integrate()
     for (size_t i = 0; i < N; i++) {
         Atom tmp = atoms[i];
         atoms[i].r = verle_R(atoms[i], dt);
-        atoms[i].dr = atoms[i].r - tmp;
-        if (atoms[i].dr.lenght() > L_FREE_MOTION) {
+        atoms[i].dr = atoms[i].r - tmp.r;
+        if (atoms[i].dr.length() > L_FREE_MOTION) {
             if (!(large_motion)) {
                 large_motion = true;
                 cout << "too large motion detected" << endl;

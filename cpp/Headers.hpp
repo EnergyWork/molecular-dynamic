@@ -9,5 +9,6 @@
 #include <algorithm>
 #include <stdio.h>
 #include <thread>
+#include <cassert>
 #include "Vector.hpp"
 using namespace std;

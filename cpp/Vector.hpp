@@ -17,7 +17,12 @@ public:
         DIM = 3;
         data = vec;
     }
-    double& operator [] (const int i) const {
+        double& operator [] (const int i) {
+        assert(i >= 0 && i < 3);
+        return data[i];
+    }
+    const double& operator [] (const int i) const {
+        assert(i >= 0 && i < 3);
         return data[i];
     }
     Vector3d operator + (const Vector3d &v) const {
@@ -45,8 +50,10 @@ public:
         return tmp;
     }
     Vector3d& operator = (const Vector3d &v) {
-        data.clear();
-        data = v;
+        //data.clear();
+        for (size_t i = 0; i < DIM; i++) {
+            data[i] = v[i];
+        }
         return *this;
     }
     Vector3d& operator += (const Vector3d &v) {
@@ -79,4 +86,5 @@ public:
         for (double& el: data)
             el = el / dr_len;
     }
+    void set(int i, double val) { data[i] = val; }
 };
