@@ -160,7 +160,7 @@ vector<double> MDSystem::NIM(vector<double> r1, vector<double> r2, double s)
 double MDSystem::NIM_fix(double coord, double s)
 {
     if (coord >= s / 2.) {
-        coord = coord - s;
+        coord = s - coord;
     } else if (coord <= -s / 2.) {
         coord = coord + s;
     }
