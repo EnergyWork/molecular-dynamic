@@ -13,19 +13,22 @@ public: // replace with private
     Atoms atoms;
 
     void init_vars();
+    Vector3d
     void clean_file();
     double force_LD(double vec_lenght);
     double NIM_fix(double coord, double s);
-    double correct_coord(double coord, double left_bound, double right_bound);
-    double lenght(Vector vect);
+    //double correct_coord(double coord, double left_bound, double right_bound);
+    //double lenght(Vector3d vect);
     double get_random_number(int min, int max);
-    Vector verle_R(Vector r, Vector dr, Vector f, double m, double dt); // -> Vector verle_R(Atom a, double dt);
-    Vector verle_V(Vector dr, double dt);
-    Vector NIM(Vector r1, Vector r2, double s);
-    Vector PBC(Vector coords, double s); // -> remove into AtomClass
-    Vector normalize(Vector vect); // -> remove into Vector
-    Vector add_force(Vector force, Vector dr, double ff);  // -> remove into AtomClass
-    Vector sub(Vector r1, Vector r2); // -> remove into Vector
+    Vector3d verle_R(Atom a, double dt);
+    Vector3d verle_V(Atom atom, double dt);
+    Vector3d NIM(Vector3d r1, Vector3d r2, double s);
+    Vector3d generate_v(bool zero_v);
+    pair<Vector3d, Vector3d> generate_r_dr();
+    //Vector3d PBC(Vector3d coords, double s); // -> remove into AtomClass
+    //Vector3d normalize(Vector3d vect); // -> remove into Vector3d
+    //Vector3d add_force(Vector3d force, Vector3d dr, double ff);  // -> remove into AtomClass
+    //Vector3d sub(Vector3d r1, Vector3d r2); // -> remove into Vector3d
 
 public:
     MDSystem(uint32_t n_atoms, double cube_size, uint32_t dim, double speed);

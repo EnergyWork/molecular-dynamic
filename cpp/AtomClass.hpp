@@ -23,7 +23,7 @@ public:
     Vector3d r, dr, f, v;
     double m;
 
-    Atom() { }
+    Atom(){ }
     Atom(Vector3d r, Vector3d dr, Vector3d f, Vector3d v, double m)
     {
         this->r = r;
@@ -32,7 +32,6 @@ public:
         this->v = v;
         this->m = m;
     }
-
     void pbc(double s)
     {
         for (size_t i = 0; i < r.size(); i++)

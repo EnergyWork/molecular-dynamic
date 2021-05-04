@@ -20,7 +20,7 @@ public:
     double& operator [] (const int i) const {
         return data[i];
     }
-    Vector3d operator+(const Vector3d &v) const {
+    Vector3d operator + (const Vector3d &v) const {
         Vector3d tmp;
         for (size_t i = 0; i < DIM; i ++)
             tmp.push(data[i] + v[i]);
