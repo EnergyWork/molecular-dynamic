@@ -28,25 +28,25 @@ public:
     Vector3d operator + (const Vector3d &v) const {
         Vector3d tmp;
         for (size_t i = 0; i < DIM; i ++)
-            tmp.push(data[i] + v[i]);
+            tmp[i] = data[i] + v[i];
         return tmp;
     }
     Vector3d operator - (const Vector3d &v) const {
         Vector3d tmp;
         for (size_t i = 0; i < DIM; i ++)
-            tmp.push(data[i] - v[i]);
+            tmp[i] = (this->data[i] - v[i]);
         return tmp;
     }
     Vector3d operator * (const double &n) const {
         Vector3d tmp;
         for (size_t i = 0; i < DIM; i ++)
-            tmp.push(data[i] * n);
+            tmp[i] = data[i] * n;
         return tmp;
     }
     Vector3d operator / (const double &n) const {
         Vector3d tmp;
         for (size_t i = 0; i < DIM; i ++)
-            tmp.push(data[i] / n);
+            tmp[i] = data[i] / n;
         return tmp;
     }
     Vector3d& operator = (const Vector3d &v) {

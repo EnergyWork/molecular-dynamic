@@ -33,7 +33,6 @@ public:
     void pbc(double s)
     {
         for (size_t i = 0; i < r.size(); i++) {
-            //r.set(i, correct_coord(r[i], 0., s));
             r[i] = correct_coord(r[i], 0., s);
         }
     }

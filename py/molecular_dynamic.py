@@ -60,6 +60,9 @@ class MDSystem:
                     if counter < self.__N:
                         self.__r[counter] = np.array([(x + 1.0 / 2) * dh, (y + 1.0 / 2) * dh, (z + 1.0 / 2) * dh])
                         self.__dr[counter] = np.array([self.__v[counter][0] * 2 * self.__dt, self.__v[counter][1] * 2 * self.__dt, self.__v[counter][2] * 2 * self.__dt])
+                        with open('.\\py\\debug.txt', 'a', encoding='utf-8') as fdbg:
+                            strdbg = f"{ self.__dr[counter][0]:.9f}  { self.__dr[counter][1]:.9f}  { self.__dr[counter][2]:.9f}\n"
+                            fdbg.write(strdbg)
                         if self.__lenght(self.__dr[counter]) > self.__L_FREE_MOTION:
                             print(' - init error')
                         counter += 1
@@ -142,9 +145,9 @@ class MDSystem:
             r_tmp = self.__r[i].copy() # хранит t-dt
             self.__r[i] = self.__verle_r(self.__r[i], self.__dr[i], self.__f[i], self.__m[i], self.__dt) # вычсиляем координаты по алгоритму верле для t+dt
             self.__dr[i] = self.__r[i] - r_tmp # вычисляем разность координат между t+dt и t
-            # with open('.\\py\\debug.txt', 'a', encoding='utf-8') as fdbg:
-            #     strdbg = f"{ self.__r[i][0]:.9f}  { self.__r[i][1]:.9f}  { self.__r[i][2]:.9f}\n"
-            #     fdbg.write(strdbg)
+            with open('.\\py\\debug.txt', 'a', encoding='utf-8') as fdbg:
+                strdbg = f"{ self.__r[i][0]:.9f}  { self.__r[i][1]:.9f}  { self.__r[i][2]:.9f}\n"
+                fdbg.write(strdbg)
             if self.__lenght(self.__dr[i]) > self.__L_FREE_MOTION : # если слишком большая разноть, то значть что-то не так
                 if not self.__large_motion:
                     self.__large_motion = True
@@ -155,10 +158,10 @@ class MDSystem:
     
 
 def main():
-    np.random.seed(42)
+    #np.random.seed(42)
     steps = 1000
     st = time.time()
-    system = MDSystem(n_atoms=3, cube_size=3, dim=3, speed=2)
+    system = MDSystem(n_atoms=5, cube_size=3, dim=3, speed=2)
     system.init_system(zero_v=True)
     with ChargingBar('Steps', max=steps, suffix='%(percent)d%%') as bar:
         for i in np.arange(1, steps+1):

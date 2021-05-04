@@ -11,7 +11,7 @@ int main()
     cout << "Start" << endl;
     clock_t start = clock();
     MDSystem *mdsys = new MDSystem(5, 3, 3, 2); // example: n_atoms=10, cube_size=3, dim=3, speed=2
-    mdsys->init_system(false);
+    mdsys->init_system(true);
     for (size_t i = 0; i < STEPS; i++) {
         mdsys->calc_forces();
         mdsys->integrate();

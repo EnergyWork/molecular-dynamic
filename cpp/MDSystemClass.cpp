@@ -10,9 +10,13 @@ MDSystem::MDSystem(uint32_t n_atoms, double cube_size, uint32_t dim, double spee
 }
 void MDSystem::clean_file()
 {
-   out.open(".\\cpp\\coords.xmol", ios::trunc);
-   out.close();
-   out.open(".\\cpp\\coords.xmol", ios::app);
+    out.open(".\\cpp\\coords.xmol", ios::trunc);
+    out.close();
+    out.open(".\\cpp\\coords.xmol", ios::app);
+
+    dbg.open(".\\cpp\\debug.txt", ios::trunc);
+    dbg.close();
+    dbg.open(".\\cpp\\debug.txt", ios::app);
 }
 void MDSystem::init_vars()
 {
@@ -114,7 +118,7 @@ Vector3d MDSystem::NIM(Vector3d r1, Vector3d r2, double s)
     for (size_t i = 0; i < DIM; i++) {
         double n = -(r1[i] - r2[i]);
         double fixed_coord = NIM_fix(n, s);
-        tmp_crds.push(fixed_coord);
+        tmp_crds[i] = fixed_coord;
     }
     Vector3d dst = Vector3d(vector<double>({s, s, s}));
     if (tmp_crds.length() > dst.length()) {
@@ -128,7 +132,7 @@ Vector3d MDSystem::NIM(Vector3d r1, Vector3d r2, double s)
 double MDSystem::NIM_fix(double coord, double s)
 {
     if (coord >= s / 2.) {
-        coord = coord - s;
+        coord = s - coord;
     } else if (coord <= -s / 2.) {
         coord = coord + s;
     }
@@ -137,7 +141,6 @@ double MDSystem::NIM_fix(double coord, double s)
 void MDSystem::calc_forces()
 {
     for (size_t i = 0; i < N; i++) {
-        //atoms[i].f.clear();
         for (size_t j = 0; j < N; j++) {
             if (i != j) {
                 Vector3d rij = NIM(atoms[i].r, atoms[j].r, SIZE);
@@ -154,7 +157,10 @@ void MDSystem::integrate()
     for (size_t i = 0; i < N; i++) {
         Atom tmp = atoms[i];
         atoms[i].r = verle_R(atoms[i], dt);
-        atoms[i].dr = atoms[i].r - tmp.r;
+        atoms[i].dr = (atoms[i].r - tmp.r);
+
+        dbg << fixed << setprecision(9) << tmp.r[0] << "  " << tmp.r[1] << "  " << tmp.r[2] << endl;
+
         if (atoms[i].dr.length() > L_FREE_MOTION) {
             if (!(large_motion)) {
                 large_motion = true;
