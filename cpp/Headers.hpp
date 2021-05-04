@@ -9,4 +9,5 @@
 #include <algorithm>
 #include <stdio.h>
 #include <thread>
+#include "Vector.hpp"
 using namespace std;

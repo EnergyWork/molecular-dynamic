@@ -39,24 +39,25 @@ void MDSystem::print_to_file()
     }
 }
 
-double MDSystem::lenght(vector<double> vec)
+//delete, removed into Vector structutre
+double MDSystem::lenght(Vector vect)
 {   
     double sum = 0;
-    for (double c: vec)
+    for (double c: vect)
         sum += pow(c, 2);
     return sqrt(sum);
 }
 
 double MDSystem::get_random_number(int min, int max)
 {
-    return (double)min + (rand() / (RAND_MAX / ((double)max - (double)min))); // dasdhaskdjadhad ATOM CLASS BRANCH
+    return (double)min + (rand() / (RAND_MAX / ((double)max - (double)min)));
 }
 
 void MDSystem::init_system(bool zero_v = false)
 {
     srand(time(NULL));
     clean_file();
-    vector<double> v_vec;
+    Vector v_vec;
     for (size_t i = 0; i < N; i++) {
         if (zero_v) {
             v_vec = {0., 0., 0.};
@@ -69,7 +70,7 @@ void MDSystem::init_system(bool zero_v = false)
         }
         v.push_back(v_vec);
         m.push_back(1.0);
-        f.push_back(vector<double>(DIM));
+        f.push_back(Vector(DIM));
     }
     double k = ceil(pow(N, 1. / 3.));
     double dh = SIZE / k;
@@ -78,8 +79,8 @@ void MDSystem::init_system(bool zero_v = false)
         for (size_t y = 0; y < k; y++) {
             for (size_t z = 0; z < k; z++){
                 if (counter < N) {
-                    vector<double> r = { (x + 1. / 2.) * dh, (y + 1. / 2.) * dh, (z + 1. / 2.) * dh };
-                    vector<double> dr = { v[counter][0] * 2. * dt, v[counter][1] * 2. * dt, v[counter][2] * 2. * dt };
+                    Vector r = { (x + 1. / 2.) * dh, (y + 1. / 2.) * dh, (z + 1. / 2.) * dh };
+                    Vector dr = { v[counter][0] * 2. * dt, v[counter][1] * 2. * dt, v[counter][2] * 2. * dt };
                     this->r.push_back(r);
                     this->dr.push_back(dr);
                     if (lenght(dr) > L_FREE_MOTION) {
@@ -105,49 +106,50 @@ double MDSystem::force_LD(double len)
     return -48. * eps * (pow(x, 13.) - 0.5 * pow(x, 7.));
 }
 
-vector<double> MDSystem::verle_R(vector<double> r, vector<double> dr, vector<double> f, double m, double dt)
+Vector MDSystem::verle_R(Vector r, Vector dr, Vector f, double m, double dt)
 {
-    vector<double> tmpr;
+    Vector tmpr;
     for (size_t i = 0; i < DIM; i++) {
         tmpr.push_back(r[i] + (dr[i] + (f[i] / (2. * m)) * pow(dt, 2.)));
     }
     return tmpr;
 }
 
-vector<double> MDSystem::verle_V(vector<double> dr, double dt)
+Vector MDSystem::verle_V(Vector dr, double dt)
 {
-    vector<double> tmpv;
+    Vector tmpv;
     for (double el: dr)
         tmpv.push_back(el / (2. * dt));
     return tmpv;
 }
 
-vector<double> MDSystem::add_force(vector<double> force, vector<double> dr, double ff)
+Vector MDSystem::add_force(Vector force, Vector dr, double ff)
 {
-    vector<double> forces_sum;
+    Vector forces_sum;
     for (size_t i = 0; i < DIM; i++)
         forces_sum.push_back(force[i] + dr[i] * ff);
     return forces_sum;
 }
 
-vector<double> MDSystem::normalize(vector<double> dr)
+//delete, removed into Vector
+Vector MDSystem::normalize(Vector dr)
 {
-    vector<double> tmp;
+    Vector tmp;
     double dr_len = lenght(dr);
     for (double el: dr)
         tmp.push_back(el / dr_len);
     return tmp;
 }
 
-vector<double> MDSystem::NIM(vector<double> r1, vector<double> r2, double s)
+Vector MDSystem::NIM(Vector r1, Vector r2, double s)
 {
-    vector<double> tmp_crds;
+    Vector tmp_crds;
     for (size_t i = 0; i < DIM; i++) {
         double n = -(r1[i] - r2[i]);
         double fixed_coord = NIM_fix(n, s);
         tmp_crds.push_back(fixed_coord);
     }
-    vector<double> dst = vector<double>{s, s, s};
+    Vector dst = Vector{s, s, s};
     if (lenght(tmp_crds) > lenght(dst)) {
         if (!(b_nim_error)) {
             b_nim_error = true;
@@ -167,24 +169,25 @@ double MDSystem::NIM_fix(double coord, double s)
     return coord;
 }
 
-
-vector<double> MDSystem::sub(vector<double> r1, vector<double> r2)
+//deleet, removed into Vector structure
+Vector MDSystem::sub(Vector r1, Vector r2)
 {
-    vector<double> tmp;
+    Vector tmp;
     for (size_t i = 0; i < DIM; i++)
         tmp.push_back(r1[i] - r2[i]);
     return tmp;
 }
 
-vector<double> MDSystem::PBC(vector<double> r, double s)
+//delete, removed into AtomClass
+Vector MDSystem::PBC(Vector r, double s)
 {   
-    vector<double> tmp;
+    Vector tmp;
     for (double coord: r)
         tmp.push_back(correct_coord(coord, 0., s));
     return tmp;
 }
 
-
+//delete, removed into AtomClass
 double MDSystem::correct_coord(double coord, double left_bound, double right_bound)
 {
     double len = right_bound - left_bound;
@@ -202,15 +205,14 @@ double MDSystem::correct_coord(double coord, double left_bound, double right_bou
 void MDSystem::calc_forces()
 {
     for (size_t i = 0; i < N; i++) {
-        f[i] = vector<double>(DIM);
+        f[i] = Vector(DIM); // delete or -> Atoms[i].f = Vector(DIM);
         for (size_t j = 0; j < N; j++) {
             if (i != j) {
-                vector<double> rij = NIM(r[i], r[j], SIZE);
-                double _rij = lenght(rij);
+                Vector rij = NIM(r[i], r[j], SIZE); // -> NIM(Atoms[i].r, Atoms[j].r, SIZE);
+                double _rij = lenght(rij); // -> rij.lenght();
                 double ff = force_LD(_rij);
-                vector<double> _dr = rij;
-                _dr = normalize(_dr);
-                f[i] = add_force(f[i], _dr, ff);
+                Vector _dr = normalize(rij); // -> rij.normalize()
+                f[i] = add_force(f[i], _dr, ff); // -> Atom[i].f += rij * ff
             }
         }
     }
@@ -219,17 +221,17 @@ void MDSystem::calc_forces()
 void MDSystem::integrate()
 {
     for (size_t i = 0; i < N; i++) {
-        vector<double> r_tmp = r[i];
-        r[i] = verle_R(r[i], dr[i], f[i], m[i], dt);
-        dr[i] = sub(r[i], r_tmp);
-        if (lenght(dr[i]) > L_FREE_MOTION) {
+        Vector r_tmp = r[i]; // -> Atom tmp = Atoms[i];
+        r[i] = verle_R(r[i], dr[i], f[i], m[i], dt); // -> Atoms[i].r = verle_R(Atoms[i], dt);
+        dr[i] = sub(r[i], r_tmp); // -> Atoms[i].dr = Atoms[i].r - tmp;
+        if (lenght(dr[i]) > L_FREE_MOTION) { // -> Atoms[i].dr.lenght();
             if (!(large_motion)) {
                 large_motion = true;
                 cout << "too large motion detected" << endl;
             }
         }
-        v[i] = verle_V(dr[i], dt);
-        r[i] = PBC(r[i], SIZE);
+        v[i] = verle_V(dr[i], dt); // -> Atoms[i].v = verle_V(Atoms[i].dr, dt);
+        r[i] = PBC(r[i], SIZE); // -> Atoms[i].pbc(); 
         fulltime += dt;
     }
 }
