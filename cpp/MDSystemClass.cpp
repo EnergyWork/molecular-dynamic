@@ -141,6 +141,7 @@ double MDSystem::NIM_fix(double coord, double s)
 void MDSystem::calc_forces()
 {
     for (size_t i = 0; i < N; i++) {
+        atoms[i].f = Vector3d(vector<double>(DIM));
         for (size_t j = 0; j < N; j++) {
             if (i != j) {
                 Vector3d rij = NIM(atoms[i].r, atoms[j].r, SIZE);
@@ -158,9 +159,7 @@ void MDSystem::integrate()
         Atom tmp = atoms[i];
         atoms[i].r = verle_R(atoms[i], dt);
         atoms[i].dr = (atoms[i].r - tmp.r);
-
-        dbg << fixed << setprecision(9) << tmp.r[0] << "  " << tmp.r[1] << "  " << tmp.r[2] << endl;
-
+        //dbg << fixed << setprecision(9) << tmp.r[0] << "  " << tmp.r[1] << "  " << tmp.r[2] << endl;
         if (atoms[i].dr.length() > L_FREE_MOTION) {
             if (!(large_motion)) {
                 large_motion = true;
