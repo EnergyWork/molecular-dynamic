@@ -4,13 +4,17 @@
 using namespace std;
 
 #define CLOCKS_PER_SEC 1000
-#define STEPS 5000
+#define STEPS 1000
+#define N_ATOMS 10
+#define CUBE_SIZE 3
+#define DIM 3
+#define SPEED 2
 
 int main()
 {   
     cout << "Start" << endl;
     clock_t start = clock();
-    MDSystem *mdsys = new MDSystem(5, 3, 3, 2); // example: n_atoms=10, cube_size=3, dim=3, speed=2
+    MDSystem *mdsys = new MDSystem(N_ATOMS, CUBE_SIZE, DIM, SPEED);
     mdsys->init_system(true);
     for (size_t i = 0; i < STEPS; i++) {
         mdsys->calc_forces();

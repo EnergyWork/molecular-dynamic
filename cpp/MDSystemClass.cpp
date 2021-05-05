@@ -132,7 +132,7 @@ Vector3d MDSystem::NIM(Vector3d r1, Vector3d r2, double s)
 double MDSystem::NIM_fix(double coord, double s)
 {
     if (coord >= s / 2.) {
-        coord = s - coord;
+        coord = coord - s; // too many questions
     } else if (coord <= -s / 2.) {
         coord = coord + s;
     }
@@ -159,7 +159,6 @@ void MDSystem::integrate()
         Atom tmp = atoms[i];
         atoms[i].r = verle_R(atoms[i], dt);
         atoms[i].dr = (atoms[i].r - tmp.r);
-        //dbg << fixed << setprecision(9) << tmp.r[0] << "  " << tmp.r[1] << "  " << tmp.r[2] << endl;
         if (atoms[i].dr.length() > L_FREE_MOTION) {
             if (!(large_motion)) {
                 large_motion = true;

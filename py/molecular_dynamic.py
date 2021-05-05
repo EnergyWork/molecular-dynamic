@@ -86,7 +86,7 @@ class MDSystem:
 
     def __nim_fix(self, coord, size):
         if coord >= size / 2.0:
-            coord = size - coord
+            coord = coord - size
         elif coord <= -size / 2.0:
             coord = coord + size
         return coord
@@ -145,9 +145,9 @@ class MDSystem:
             r_tmp = self.__r[i].copy() # хранит t-dt
             self.__r[i] = self.__verle_r(self.__r[i], self.__dr[i], self.__f[i], self.__m[i], self.__dt) # вычсиляем координаты по алгоритму верле для t+dt
             self.__dr[i] = self.__r[i] - r_tmp # вычисляем разность координат между t+dt и t
-            with open('.\\py\\debug.txt', 'a', encoding='utf-8') as fdbg:
-                strdbg = f"{ self.__r[i][0]:.9f}  { self.__r[i][1]:.9f}  { self.__r[i][2]:.9f}\n"
-                fdbg.write(strdbg)
+            # with open('.\\py\\debug.txt', 'a', encoding='utf-8') as fdbg:
+            #     strdbg = f"{ self.__r[i][0]:.9f}  { self.__r[i][1]:.9f}  { self.__r[i][2]:.9f}\n"
+            #     fdbg.write(strdbg)
             if self.__lenght(self.__dr[i]) > self.__L_FREE_MOTION : # если слишком большая разноть, то значть что-то не так
                 if not self.__large_motion:
                     self.__large_motion = True
@@ -161,7 +161,7 @@ def main():
     #np.random.seed(42)
     steps = 1000
     st = time.time()
-    system = MDSystem(n_atoms=5, cube_size=3, dim=3, speed=2)
+    system = MDSystem(n_atoms=10, cube_size=3, dim=3, speed=2)
     system.init_system(zero_v=True)
     with ChargingBar('Steps', max=steps, suffix='%(percent)d%%') as bar:
         for i in np.arange(1, steps+1):
