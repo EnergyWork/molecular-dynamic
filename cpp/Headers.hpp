@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <stdio.h>
 #include <thread>
+#include <mutex>
 #include <cassert>
 #include "Vector.hpp"
 using namespace std;

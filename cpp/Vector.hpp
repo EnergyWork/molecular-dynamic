@@ -17,7 +17,7 @@ public:
         DIM = 3;
         data = vec;
     }
-        double& operator [] (const int i) {
+    double& operator [] (const int i) {
         assert(i >= 0 && i < 3);
         return data[i];
     }
@@ -86,5 +86,4 @@ public:
         for (double& el: data)
             el = el / dr_len;
     }
-    void set(int i, double val) { data[i] = val; }
 };

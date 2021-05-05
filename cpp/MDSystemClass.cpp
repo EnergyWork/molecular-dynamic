@@ -14,9 +14,9 @@ void MDSystem::clean_file()
     out.close();
     out.open(".\\cpp\\coords.xmol", ios::app);
 
-    dbg.open(".\\cpp\\debug.txt", ios::trunc);
-    dbg.close();
-    dbg.open(".\\cpp\\debug.txt", ios::app);
+    // dbg.open(".\\cpp\\debug.txt", ios::trunc);
+    // dbg.close();
+    // dbg.open(".\\cpp\\debug.txt", ios::app);
 }
 void MDSystem::init_vars()
 {
