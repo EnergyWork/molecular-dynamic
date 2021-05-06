@@ -1,11 +1,8 @@
 #include "MDSystemClass.hpp"
 
-MDSystem::MDSystem(uint32_t n_atoms, double cube_size, uint32_t dim, double speed)
+MDSystem::MDSystem(uint32_t n_atoms, double cube_size, uint32_t dim, double speed, uint32_t n_threads) :
+    N(n_atoms), SIZE(cube_size), DIM(dim), SPEED(speed), N_THREADS(n_threads)
 {
-    N = n_atoms;
-    SIZE = cube_size;
-    DIM = dim;
-    SPEED = speed;
     init_vars();
 }
 void MDSystem::clean_file()
@@ -138,35 +135,52 @@ double MDSystem::NIM_fix(double coord, double s)
     }
     return coord;
 }
-void MDSystem::calc_forces()
+vector<pair<uint32_t, uint32_t>> MDSystem::spread(uint32_t n_atoms, uint32_t n_ths)
 {
-    for (size_t i = 0; i < N; i++) {
+    vector<pair<uint32_t, uint32_t>> tmp;
+    uint32_t f = 0, t = floor(n_atoms / n_ths);
+    for (size_t i = 0; i < n_ths; i++) {
+        tmp.push_back(make_pair(f, f + t));
+        f += t + 1;
+    }
+    return tmp;
+}
+void MDSystem::simulate(size_t from, size_t to) 
+{
+    for (size_t i = from; i < to; i++) {
+        // вычисляем силу для i-го атома
         atoms[i].f = Vector3d(vector<double>(DIM));
         for (size_t j = 0; j < N; j++) {
             if (i != j) {
+                mtx.lock();
                 Vector3d rij = NIM(atoms[i].r, atoms[j].r, SIZE);
+                mtx.unlock();
                 double _rij = rij.length();
                 double ff = force_LD(_rij);
                 rij.normalize();
                 atoms[i].f += (rij * ff);
             }
         }
-    }
-}
-void MDSystem::integrate()
-{
-    for (size_t i = 0; i < N; i++) {
+        // вычисляем его новые координаты и скорость
         Atom tmp = atoms[i];
         atoms[i].r = verle_R(atoms[i], dt);
         atoms[i].dr = (atoms[i].r - tmp.r);
+        mtx.lock();
         if (atoms[i].dr.length() > L_FREE_MOTION) {
             if (!(large_motion)) {
                 large_motion = true;
                 cout << "too large motion detected" << endl;
             }
         }
+        mtx.unlock();
         atoms[i].v = verle_V(atoms[i], dt);
         atoms[i].pbc(SIZE); 
+        mtx.lock();
         fulltime += dt;
+        mtx.unlock();
     }
+}
+void MDSystem::solve(size_t steps)
+{
+    vector<pair<uint32_t, uint32_t>> intervals = spread(N, N_THREADS);
 }
