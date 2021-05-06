@@ -4,8 +4,8 @@
 using namespace std;
 
 #define CLOCKS_PER_SEC 1000
-#define STEPS 1000
-#define N_ATOMS 10
+#define STEPS 10000
+#define N_ATOMS 25
 #define CUBE_SIZE 3
 #define DIM 3
 #define SPEED 2
