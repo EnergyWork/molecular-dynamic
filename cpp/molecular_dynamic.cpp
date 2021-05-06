@@ -3,7 +3,7 @@
 
 #define CLOCKS_PER_SEC 1000
 #define STEPS 1000
-#define N_ATOMS 30
+#define N_ATOMS 10
 #define CUBE_SIZE 3
 #define DIM 3
 #define SPEED 2

@@ -3,6 +3,7 @@
 MDSystem::MDSystem(uint32_t n_atoms, double cube_size, uint32_t dim, double speed, uint32_t n_threads) :
     N(n_atoms), SIZE(cube_size), DIM(dim), SPEED(speed), N_THREADS(n_threads)
 {
+    threads = vector<thread>(N_THREADS);
     init_vars();
 }
 void MDSystem::clean_file()
@@ -138,22 +139,30 @@ double MDSystem::NIM_fix(double coord, double s)
 vector<pair<uint32_t, uint32_t>> MDSystem::spread(uint32_t n_atoms, uint32_t n_ths)
 {
     vector<pair<uint32_t, uint32_t>> tmp;
-    uint32_t f = 0, t = floor(n_atoms / n_ths);
+    vector<int> t = vector<int>(n_ths);
+    for (size_t i = 0, j = 0; i < n_atoms; i++, j++) {
+        t[j]++;
+        if ((j+1) % (n_ths) == 0) 
+            j = -1;
+    }
+    uint32_t f = 0, st;
     for (size_t i = 0; i < n_ths; i++) {
-        tmp.push_back(make_pair(f, f + t));
-        f += t + 1;
+        st = t[i];
+        tmp.push_back(make_pair(f, f + st));
+        f += st;
     }
     return tmp;
 }
-void MDSystem::simulate(size_t from, size_t to) 
+void MDSystem::simulate(uint32_t from, uint32_t to) 
 {
     for (size_t i = from; i < to; i++) {
         // вычисляем силу для i-го атома
         atoms[i].f = Vector3d(vector<double>(DIM));
         for (size_t j = 0; j < N; j++) {
             if (i != j) {
+                Vector3d rij;
                 mtx.lock();
-                Vector3d rij = NIM(atoms[i].r, atoms[j].r, SIZE);
+                rij = NIM(atoms[i].r, atoms[j].r, SIZE);
                 mtx.unlock();
                 double _rij = rij.length();
                 double ff = force_LD(_rij);
@@ -166,11 +175,13 @@ void MDSystem::simulate(size_t from, size_t to)
         atoms[i].r = verle_R(atoms[i], dt);
         atoms[i].dr = (atoms[i].r - tmp.r);
         mtx.lock();
+        {
         if (atoms[i].dr.length() > L_FREE_MOTION) {
             if (!(large_motion)) {
                 large_motion = true;
                 cout << "too large motion detected" << endl;
             }
+        }
         }
         mtx.unlock();
         atoms[i].v = verle_V(atoms[i], dt);
@@ -183,4 +194,11 @@ void MDSystem::simulate(size_t from, size_t to)
 void MDSystem::solve(size_t steps)
 {
     vector<pair<uint32_t, uint32_t>> intervals = spread(N, N_THREADS);
+    for (size_t step = 0; step < steps; step++) {
+        for (size_t i = 0; i < N_THREADS; i++)
+            threads[i] = thread(&MDSystem::simulate, this, intervals[i].first, intervals[i].second);
+        for (auto &th : threads) 
+            th.join();
+        print_to_file();
+    }
 }

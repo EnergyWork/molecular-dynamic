@@ -25,7 +25,7 @@ public: // replace with private
     Vector3d generate_v(bool zero_v);
     pair<Vector3d, Vector3d> generate_r_dr(size_t x, size_t y, size_t z, double dh, Vector3d v);
     vector<pair<uint32_t, uint32_t>> spread(uint32_t n_atoms, uint32_t n_ths);
-    void simulate(size_t from, size_t to);
+    void simulate(uint32_t from, uint32_t to);
     void print_to_file();
 public:
     MDSystem(uint32_t n_atoms, double cube_size, uint32_t dim, double speed, uint32_t n_threads);
